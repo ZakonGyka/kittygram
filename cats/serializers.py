@@ -5,6 +5,14 @@ import webcolors
 from .models import Cat, Owner, Achievement, AchievementCat, CHOICES
 
 
+class CatListSerializer(serializers.ModelSerializer):
+    color = serializers.ChoiceField(choices=CHOICES)
+
+    class Meta:
+        model = Cat
+        fields = ('id', 'name', 'color')
+
+
 class Hex2NameColor(serializers.Field):
     def to_representation(self, value):
         return value
@@ -29,7 +37,8 @@ class CatSerializer(serializers.ModelSerializer):
     # owner = serializers.StringRelatedField(read_only=True)
     achievements = AchievementSerializer(required=False, many=True)
     age = serializers.SerializerMethodField()
-    color = serializers.ChoiceField(choices=CHOICES)
+    # color = serializers.ChoiceField(choices=CHOICES)
+    color = Hex2NameColor()
 
     def create(self, validated_data):
         if 'achievements' not in self.initial_data:
