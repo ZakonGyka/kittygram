@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from rest_framework import mixins
 
-from .models import Cat, Owner
-from .serializers import CatSerializer, OwnerSerializer, CatListSerializer
+from .models import Cat, User
+from .serializers import CatSerializer, CatListSerializer, UserSerializer
 
 
 # Описываем свой базовый класс вьюсета:
@@ -26,6 +26,9 @@ class CatViewSet(viewsets.ModelViewSet):
     queryset = Cat.objects.all()
     serializer_class = CatSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
     def get_serializer_class(self):
         # Если запрошенное действие (action) — получение списка объектов ('list')
         if self.action == 'list':
@@ -44,18 +47,26 @@ class CatViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class OwnerViewSet(viewsets.ModelViewSet):
-    queryset = Owner.objects.all()
-    serializer_class = OwnerSerializer
+# class OwnerViewSet(viewsets.ModelViewSet):
+#     queryset = Owner.objects.all()
+#     serializer_class = OwnerSerializer
 
-# class CatList(generics.ListCreateAPIView):
-#     queryset = Cat.objects.all()
-#     serializer_class = CatSerializer
 
-# class CatDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Cat.objects.all()
-#     serializer_class = CatSerializer
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+# Generics
+'''
+class CatList(generics.ListCreateAPIView):
+    queryset = Cat.objects.all()
+    serializer_class = CatSerializer
+
+class CatDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Cat.objects.all()
+    serializer_class = CatSerializer
+'''
+# ApiView
 '''
 class APICAT(APIView):
     def get(self, request):

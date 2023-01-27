@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 class Owner(models.Model):
@@ -30,9 +34,17 @@ class Cat(models.Model):
     color = models.CharField(max_length=16)
     birth_year = models.IntegerField()
     owner = models.ForeignKey(
-        Owner, related_name='cats', on_delete=models.CASCADE)
+        User, related_name='cats', on_delete=models.CASCADE)
     achievements = models.ManyToManyField(Achievement,
                                           through='AchievementCat')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'owner'],
+                name='unique_name_owner'
+            )
+        ]
 
     def __str__(self):
         return self.name

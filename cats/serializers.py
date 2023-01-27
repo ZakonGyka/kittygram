@@ -1,8 +1,9 @@
 from rest_framework import serializers
 import datetime
 import webcolors
+from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Cat, Owner, Achievement, AchievementCat, CHOICES
+from .models import Cat, Owner, Achievement, AchievementCat, CHOICES, User
 
 
 class CatListSerializer(serializers.ModelSerializer):
@@ -34,11 +35,37 @@ class AchievementSerializer(serializers.ModelSerializer):
 
 
 class CatSerializer(serializers.ModelSerializer):
-    # owner = serializers.StringRelatedField(read_only=True)
+    owner = serializers.StringRelatedField(read_only=True,
+                                           default=serializers.CurrentUserDefault())
     achievements = AchievementSerializer(required=False, many=True)
     age = serializers.SerializerMethodField()
-    # color = serializers.ChoiceField(choices=CHOICES)
-    color = Hex2NameColor()
+    color = serializers.ChoiceField(choices=CHOICES)
+    # color = Hex2NameColor()
+
+    class Meta:
+        model = Cat
+        fields = ('id', 'name', 'color', 'birth_year', 'owner',
+                  'achievements', 'age')
+        read_only_fields = ('owner',)
+
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Cat.objects.all(),
+        #         fields=('name', 'owner')
+        #     )
+        # ]
+
+    def validate_birth_year(self, value):
+        year = datetime.date.today().year
+        if not (year - 40 < value <= year):
+            raise serializers.ValidationError('Проверьте год рождения!')
+        return value
+
+    def validate(self, data):
+        if data['color'] == data['name']:
+            raise serializers.ValidationError(
+                'Имя не может совпадать с цветом!')
+        return data
 
     def create(self, validated_data):
         if 'achievements' not in self.initial_data:
@@ -53,11 +80,6 @@ class CatSerializer(serializers.ModelSerializer):
                                           cat=cat)
         return cat
 
-    class Meta:
-        model = Cat
-        fields = ('id', 'name', 'color', 'birth_year', 'owner',
-                  'achievements', 'age')
-
     def get_age(self, obj):
         return datetime.datetime.now().year - obj.birth_year
 
@@ -70,3 +92,10 @@ class OwnerSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'cats')
 
 
+class UserSerializer(serializers.ModelSerializer):
+    cats = serializers.StringRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'cats')
+        ref_name = 'ReadOnlyUsers'
