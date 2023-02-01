@@ -5,10 +5,13 @@ from rest_framework import permissions
 from rest_framework import mixins
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from .throttling import WorkingHoursRateThrottle
+from rest_framework.pagination import PageNumberPagination, \
+    LimitOffsetPagination
 
 from .permissions import OwnerOrReadOnly
 from .models import Cat, User
 from .serializers import CatSerializer, CatListSerializer, UserSerializer
+from .pagination import CatsPagination
 
 
 # Описываем свой базовый класс вьюсета:
@@ -36,6 +39,7 @@ class CatViewSet(viewsets.ModelViewSet):
     # А далее применится лимит low_request
     # throttle_scope = 'low_request'
     throttle_scope = 'max_request'
+    pagination_class = CatsPagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
