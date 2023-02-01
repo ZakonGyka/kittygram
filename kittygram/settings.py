@@ -105,6 +105,22 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+
+    'DEFAULT_THROTTLE_CLASSES': [
+        # 'rest_framework.throttling.UserRateThrottle',
+        # Не будем подключать класс AnonRateThrottle глобально.
+        # Подключим его только в тех view-классах или вьюсетах,
+        # где надо установить лимиты для анонимов
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # 'user': '10/day',  # Лимит для UserRateThrottle
+        # 'anon': '3/day',  # Лимит для AnonRateThrottle
+        # Имена (ключи) для scope придумывает разработчик,
+        # в меру собственной фантазии
+        # 'low_request': '1/minute',
+        'max_request': '2/minute',
+    }
 }
 
 SIMPLE_JWT = {

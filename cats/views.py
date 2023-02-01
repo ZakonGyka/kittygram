@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import mixins
+from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
+from .throttling import WorkingHoursRateThrottle
 
 from .permissions import OwnerOrReadOnly
 from .models import Cat, User
@@ -27,14 +29,13 @@ class CatViewSet(viewsets.ModelViewSet):
     queryset = Cat.objects.all()
     serializer_class = CatSerializer
     permission_classes = (OwnerOrReadOnly,)
-
-    # def get_permissions(self):
-    #     # Если в GET-запросе требуется получить информацию об объекте
-    #     if self.action == 'retrieve':
-    #         # Вернем обновленный перечень используемых пермишенов
-    #         return (ReadOnly(),)
-    #     # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
-    #     return super().get_permissions()
+    # throttle_classes = (AnonRateThrottle,)
+    # Если кастомный тротлинг-класс вернёт True - запросы будут обработаны
+    # Если он вернёт False - все запросы будут отклонены
+    throttle_classes = (WorkingHoursRateThrottle, ScopedRateThrottle)
+    # А далее применится лимит low_request
+    # throttle_scope = 'low_request'
+    throttle_scope = 'max_request'
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -65,6 +66,7 @@ class CatViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    throttle_classes = (WorkingHoursRateThrottle, ScopedRateThrottle)
 
 # Generics
 '''
