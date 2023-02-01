@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination, \
 from .permissions import OwnerOrReadOnly
 from .models import Cat, User
 from .serializers import CatSerializer, CatListSerializer, UserSerializer
-from .pagination import CatsPagination
+from .pagination import CatsPagination, CustomPagination
 
 
 # Описываем свой базовый класс вьюсета:
@@ -39,7 +39,8 @@ class CatViewSet(viewsets.ModelViewSet):
     # А далее применится лимит low_request
     # throttle_scope = 'low_request'
     throttle_scope = 'max_request'
-    pagination_class = CatsPagination
+    # pagination_class = CatsPagination
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
